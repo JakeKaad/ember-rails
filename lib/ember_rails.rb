@@ -15,10 +15,25 @@ module Ember
   module Rails
     class Railtie < ::Rails::Railtie
       config.ember = ActiveSupport::OrderedOptions.new
+      config.ember.module_prefix = 'ember-app'
+      config.ember.prefix_files = %w(store router)
+      config.ember.prefix_dirs = %w(
+        models
+        controllers
+        views
+        routes
+        components
+        helpers
+        mixins
+        services
+        initializers
+        instance-initializers
+        serializers
+        adapters
+        transforms
+      )
 
       generators do |app|
-        app ||= ::Rails.application # Rails 3.0.x does not yield `app`
-
         app.config.generators.assets = false
 
         ::Rails::Generators.configure!(app.config.generators)
@@ -66,7 +81,6 @@ module Ember
         FileUtils.cp(::Ember::Source.bundled_path_for("ember#{ember_ext}"), tmp_path.join("ember.js"))
         ember_data_ext = variant == :production ? ".prod.js" : ".js"
         FileUtils.cp(::Ember::Data::Source.bundled_path_for("ember-data#{ember_data_ext}"), tmp_path.join("ember-data.js"))
-
         configure_assets app do |env|
           env.append_path tmp_path
         end
@@ -77,12 +91,6 @@ module Ember
           env.append_path ::Ember::Source.bundled_path_for(nil)
           env.append_path ::Ember::Data::Source.bundled_path_for(nil)
           env.append_path File.expand_path('../', ::Handlebars::Source.bundled_path) if defined?(::Handlebars::Source)
-        end
-      end
-
-      initializer "ember_rails.setup_ember_template_compiler", :after => "ember_rails.setup_vendor", :group => :all do |app|
-        configure_assets app do |env|
-          Ember::Handlebars::Template.setup_ember_template_compiler(env.resolve('ember-template-compiler.js'))
         end
       end
 
